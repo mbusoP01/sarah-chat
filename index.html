@@ -20,24 +20,29 @@
         <span style="font-weight: bold;">Sarah</span>
         <button class="btn" onclick="updateUrl()">Update Link</button>
     </div>
-    <div id="chat"></div>
+    <div id="chat">
+        <div class="msg sarah">Ready for you, Sir Mbuso.</div>
+    </div>
     <div id="input-area">
         <input type="text" id="user-input" placeholder="Message Sarah..." onkeypress="if(event.key === 'Enter') send()">
         <button class="btn" style="font-size: 18px;" onclick="send()">Send</button>
     </div>
 
     <script>
+        // Retrieve the last used link from browser memory
         let NGROK_URL = localStorage.getItem('sarah_link') || "";
 
         function updateUrl() {
-            const newUrl = prompt("Paste your new Ngrok URL here:", NGROK_URL);
+            const newUrl = prompt("Paste your new Ngrok URL here (including https://):", NGROK_URL);
             if (newUrl) {
+                // Ensure no trailing slash
                 NGROK_URL = newUrl.replace(/\/$/, ""); 
                 localStorage.setItem('sarah_link', NGROK_URL);
                 location.reload();
             }
         }
 
+        // If no link exists, ask for one immediately
         if (!NGROK_URL) updateUrl();
 
         async function send() {
@@ -53,13 +58,16 @@
             try {
                 const res = await fetch(`${NGROK_URL}/chat`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // Critical to bypass the blue ngrok page
+                    },
                     body: JSON.stringify({ prompt: text })
                 });
                 const data = await res.json();
                 chat.innerHTML += `<div class="msg sarah">${data.response}</div>`;
             } catch (e) {
-                chat.innerHTML += `<div class="msg sarah" style="color:red;">Connection lost. Tap 'Update Link' above to paste your new Ngrok URL.</div>`;
+                chat.innerHTML += `<div class="msg sarah" style="color:red;">Connection lost. Tap 'Update Link' above.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
