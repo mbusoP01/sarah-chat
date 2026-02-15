@@ -29,20 +29,17 @@
     </div>
 
     <script>
-        // Retrieve the last used link from browser memory
         let NGROK_URL = localStorage.getItem('sarah_link') || "";
 
         function updateUrl() {
-            const newUrl = prompt("Paste your new Ngrok URL here (including https://):", NGROK_URL);
+            const newUrl = prompt("Paste your new Ngrok URL here:", NGROK_URL);
             if (newUrl) {
-                // Ensure no trailing slash
                 NGROK_URL = newUrl.replace(/\/$/, ""); 
                 localStorage.setItem('sarah_link', NGROK_URL);
                 location.reload();
             }
         }
 
-        // If no link exists, ask for one immediately
         if (!NGROK_URL) updateUrl();
 
         async function send() {
@@ -52,22 +49,29 @@
 
             const text = input.value;
             chat.innerHTML += `<div class="msg user">${text}</div>`;
+            
+            const thinkingId = "think-" + Date.now();
+            chat.innerHTML += `<div class="msg sarah" id="${thinkingId}"><i>Sarah is thinking...</i></div>`;
+            
             input.value = '';
             chat.scrollTop = chat.scrollHeight;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute wait
 
             try {
                 const res = await fetch(`${NGROK_URL}/chat`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // Critical to bypass the blue ngrok page
-                    },
-                    body: JSON.stringify({ prompt: text })
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ prompt: text }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 const data = await res.json();
-                chat.innerHTML += `<div class="msg sarah">${data.response}</div>`;
+                document.getElementById(thinkingId).innerText = data.response;
             } catch (e) {
-                chat.innerHTML += `<div class="msg sarah" style="color:red;">Connection lost. Tap 'Update Link' above.</div>`;
+                document.getElementById(thinkingId).innerHTML = `<span style="color:red;">Timeout. She's thinking hard, Sir Mbuso.</span>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
