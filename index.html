@@ -5,34 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f2f2f7; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d1d6; }
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
-        .msg { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; line-height: 1.4; font-size: 16px; position: relative; }
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; line-height: 1.4; font-size: 16px; }
         .user { align-self: flex-end; background: #007aff; color: white; border-bottom-right-radius: 5px; }
         .sarah { align-self: flex-start; background: #e9e9eb; color: black; border-bottom-left-radius: 5px; }
         #input-area { background: white; padding: 15px; display: flex; border-top: 1px solid #d1d1d6; align-items: center; }
         input { flex: 1; border: 1px solid #d1d1d6; border-radius: 20px; padding: 10px 15px; outline: none; font-size: 16px; }
-        button { background: none; border: none; color: #007aff; font-weight: bold; margin-left: 10px; cursor: pointer; font-size: 16px; }
-        .status { font-size: 12px; color: #8e8e93; text-align: center; margin-bottom: 10px; }
+        .btn { color: #007aff; font-weight: bold; cursor: pointer; border: none; background: none; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div id="chat">
-        <div class="status">System Initialized. Awaiting Link...</div>
+    <div id="header">
+        <span style="font-weight: bold;">Sarah</span>
+        <button class="btn" onclick="updateUrl()">Update Link</button>
     </div>
+    <div id="chat"></div>
     <div id="input-area">
         <input type="text" id="user-input" placeholder="Message Sarah..." onkeypress="if(event.key === 'Enter') send()">
-        <button onclick="send()">Send</button>
+        <button class="btn" style="font-size: 18px;" onclick="send()">Send</button>
     </div>
 
     <script>
-        // This asks you for the Ngrok URL the moment you open the page
-        let NGROK_URL = localStorage.getItem('last_sarah_url') || "";
-        
+        let NGROK_URL = localStorage.getItem('sarah_link') || "";
+
         function updateUrl() {
-            const input = prompt("Please enter your current Ngrok Forwarding URL (e.g., https://...ngrok-free.app):", NGROK_URL);
-            if (input) {
-                NGROK_URL = input.replace(/\/$/, ""); // Remove trailing slash if added
-                localStorage.setItem('last_sarah_url', NGROK_URL);
+            const newUrl = prompt("Paste your new Ngrok URL here:", NGROK_URL);
+            if (newUrl) {
+                NGROK_URL = newUrl.replace(/\/$/, ""); 
+                localStorage.setItem('sarah_link', NGROK_URL);
+                location.reload();
             }
         }
 
@@ -43,25 +45,21 @@
             const chat = document.getElementById('chat');
             if (!input.value) return;
 
-            const userText = input.value;
-            chat.innerHTML += `<div class="msg user">${userText}</div>`;
+            const text = input.value;
+            chat.innerHTML += `<div class="msg user">${text}</div>`;
             input.value = '';
             chat.scrollTop = chat.scrollHeight;
 
             try {
                 const res = await fetch(`${NGROK_URL}/chat`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // Bypasses the ngrok landing page
-                    },
-                    body: JSON.stringify({ prompt: userText })
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ prompt: text })
                 });
-                
                 const data = await res.json();
                 chat.innerHTML += `<div class="msg sarah">${data.response}</div>`;
             } catch (e) {
-                chat.innerHTML += `<div class="msg sarah" style="color: red;">Error: Could not reach Sarah. Check your Ngrok link. <button onclick="updateUrl()" style="font-size: 10px; color: grey;">Update Link</button></div>`;
+                chat.innerHTML += `<div class="msg sarah" style="color:red;">Connection lost. Tap 'Update Link' above to paste your new Ngrok URL.</div>`;
             }
             chat.scrollTop = chat.scrollHeight;
         }
