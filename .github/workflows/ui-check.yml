@@ -2,7 +2,7 @@ name: UI Check
 
 on:
   push:
-    branches: [main, ui-v3]
+    branches: [main, ui-v3, abilities-v3-1]
   pull_request:
 
 jobs:
