@@ -2,7 +2,7 @@ name: UI Check
 
 on:
   push:
-    branches: [main, ui-v3, abilities-v3-1, premium-v3-2, abilities-v3-3, fix-jina-search-v3-3, ui-polish-v3-4, migration/nexal-ai-extract-20260822, work/nexal-ai-v3.5-context-engine-20260822]
+    branches: [main, ui-v3, abilities-v3-1, premium-v3-2, abilities-v3-3, fix-jina-search-v3-3, ui-polish-v3-4, migration/nexal-ai-extract-20260822, work/nexal-ai-v3.5-context-engine-20260822, work/nexal-ai-v3.6-local-project-lens-20260822]
   pull_request:
 
 jobs:
@@ -26,6 +26,8 @@ jobs:
           test -s repo-tools.js
           test -s context-engine.js
           test -s context-engine.test.mjs
+          test -s project-tools.js
+          test -s project-tools.test.mjs
           test -s ui-polish.js
           test -s manifest.webmanifest
           test -s service-worker.js
@@ -40,7 +42,11 @@ jobs:
           node --check repo-tools.js
           node --check context-engine.js
           node --check context-engine.test.mjs
+          node --check project-tools.js
+          node --check project-tools.test.mjs
           node --check ui-polish.js
           node --check service-worker.js
       - name: Test Context Engine behavior
         run: node context-engine.test.mjs
+      - name: Test Local Project Lens behavior
+        run: node project-tools.test.mjs
