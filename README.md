@@ -1,51 +1,97 @@
-# Nexal AI — R0 Cloud AI
+# Nexal AI v3 — R0 Intelligence Workspace
 
-Nexal AI is a static online chat interface that connects the user's browser directly to AI Horde's volunteer GPU network. No paid GPU, paid inference API, or Nexal server-side inference relay is required.
+Nexal AI is a free-first browser AI workspace. The production app runs at:
 
-Production: https://nexal-ai-eight.vercel.app
+**https://nexal-ai-eight.vercel.app**
 
-## Final architecture
+The core inference path remains R0: the browser connects directly to AI Horde community compute. There is no paid GPU requirement and no Nexal inference proxy.
 
-Browser → AI Horde REST API → live community text worker
+## Architecture
 
-Vercel serves only the static HTML/JavaScript page. Prompts, the optional Horde API key, generation requests and polling go directly from the browser to AI Horde.
+`Browser UI → local ability layer → AI Horde / optional browser-safe tools`
+
+Vercel serves the shell. Production JS/CSS are pinned to the immutable GitHub squash commit `e1b9d1c7d31973d99df00903b6eea48445a16851` through jsDelivr, so the live UI cannot drift when the repository changes.
+
+## Product UI
+
+v3 replaces the prototype chat screen with a desktop/mobile workspace:
+
+- Multi-conversation sidebar with local search and deletion
+- Persistent local chat history
+- New-chat workflow and auto-generated conversation titles
+- Command palette (`Ctrl/Cmd + K`)
+- Markdown-style response rendering and fenced code blocks
+- Code copy, message copy, read-aloud and regenerate actions
+- Responsive mobile navigation
+- Model routing drawer with live worker/ETA information
+- Context drawer for attached files and webpages
+- Settings drawer
+- Image Studio
+- Abilities/plugin management page
+- Workspace export
+- PWA manifest and offline shell fallback
+
+## Ability layer
+
+The browser-safe plugin system is inspired by the tool/action model used by projects such as Open WebUI, but Nexal AI does **not** execute arbitrary third-party plugin code in the browser.
+
+Current abilities:
+
+1. **AI Horde Chat** — dynamic low-refusal, balanced, fastest-capable and largest-model routing.
+2. **Web Reader** — adds webpages and public PDFs to context through Jina Reader.
+3. **File Context** — local TXT, Markdown, JSON, CSV and source-code files can be attached without uploading them to a Nexal server.
+4. **Calculator** — arithmetic is executed locally before involving an LLM.
+5. **Image Studio** — image generation through live AI Horde image workers.
+6. **Image Vision** — uploaded images can be captioned through AI Horde interrogation/alchemy workers.
+7. **Voice** — browser speech recognition and speech synthesis where supported.
+8. **OpenAI-Compatible Connector** — reserved optional connector boundary for future CORS-enabled endpoints.
+
+Reserved extension points include browser-safe OpenAPI tool servers and MCP-over-HTTP endpoints.
 
 ## Routing and reliability
 
 - Low-refusal prioritizes live Cydonia, Skyfall, Heretic/abliterated, Magnum and related models.
 - Balanced routes among high-scoring capable live models.
-- Fastest capable optimizes ETA while applying a quality floor so tiny models do not win just because their queue is empty.
+- Fastest capable optimizes ETA while applying a quality floor.
 - Largest available prioritizes larger capable models.
-- Manual model selection remains available.
-- Automatic modes offer a small model pool so another suitable worker can take the job if one disappears or becomes busy.
-- Short prompts automatically request smaller context windows (1024/2048/4096 as needed), which increases the number of workers that can accept them.
-- Model discovery tries the current `aihorde.net` endpoint first and the compatible `stablehorde.net` endpoint second.
-- Generations are asynchronous, poll from the browser, and can be cancelled.
-
-## Response quality
-
-- Stop sequences prevent a model from continuing into fake user/system turns.
-- The default system instruction asks for direct final answers rather than reasoning-style narration.
-- A live Cydonia 24B probe returned exactly `NEXAL_DIRECT_OK` using these settings.
+- Automatic modes submit a small live model pool rather than relying on one worker.
+- Context windows adapt between 1024/2048/4096 depending on prompt size.
+- Model discovery uses `aihorde.net` with `stablehorde.net` as a compatibility fallback.
+- Text generations are asynchronous, polled from the browser and cancellable.
 
 ## Cost
 
-The core path is R0/$0. Anonymous AI Horde access works using its documented anonymous API key. A registered Horde account/key remains free and can improve queue priority; the Settings panel links directly to AI Horde registration.
+The default path is R0/$0. Anonymous AI Horde access works without an account. A registered free Horde key can improve queue priority.
+
+Jina Reader can be used for URL reading; an optional Jina key can be stored locally in the browser for higher limits or future search capabilities.
 
 ## Privacy and security
 
-- Chat history and settings stay in browser storage.
-- The optional Horde key is sent directly to AI Horde, not through a Nexal/Vercel inference server.
-- The page uses a restrictive Content Security Policy and a no-referrer policy.
-- AI Horde uses community-operated workers, so do not submit passwords, private client information or other secrets.
+- Conversations, plugin settings and optional keys are stored in browser local storage.
+- No Nexal inference server receives prompts or Horde keys.
+- User-file text is read locally before being placed into prompt context.
+- The page uses a restrictive Content Security Policy and no-referrer policy.
+- Arbitrary third-party plugin JavaScript is intentionally not executed.
+- AI Horde workers are community operated, so do not submit passwords, private client information or other secrets.
 
-## Verification
+## Quality gates
 
-- AI Horde CORS was verified to allow browser origins, the `apikey` and `Client-Agent` headers, and the required request methods.
-- Live model discovery and real text generation were tested successfully.
-- The production JavaScript passed a syntax check before deployment.
-- The old Nexal `/api` relay was removed and now returns 404.
+- v3 was developed on `ui-v3` and merged through PR #1.
+- GitHub Actions checks required assets and runs `node --check app.js` on pushes and pull requests.
+- The final branch passed that CI gate before merge.
+- Production CDN assets were independently fetched after deployment: `app.js` returned JavaScript MIME type, parsed successfully and `styles.css` returned CSS MIME type.
+- The previous server-side inference relay remains removed.
+
+## Source layout
+
+- `index.html` — secure app shell
+- `styles.css` — product UI design system
+- `app.js` — conversations, routing, tools and abilities
+- `manifest.webmanifest` — installable-app metadata
+- `service-worker.js` — update-safe offline shell fallback
+- `.github/workflows/ui-check.yml` — automated asset/syntax verification
 
 ## Rollback
 
-The pre-Nexal original Sarah frontend is preserved on branch `legacy-sarah-20260822`.
+- `legacy-sarah-20260822` preserves the original Sarah frontend.
+- Git history before PR #1 preserves the earlier Nexal AI R0 chat interface.
