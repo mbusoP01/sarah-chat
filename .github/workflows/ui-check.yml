@@ -2,7 +2,7 @@ name: UI Check
 
 on:
   push:
-    branches: [main, ui-v3, abilities-v3-1, premium-v3-2]
+    branches: [main, ui-v3, abilities-v3-1, premium-v3-2, abilities-v3-3]
   pull_request:
 
 jobs:
@@ -22,6 +22,7 @@ jobs:
           test -s workspace-tools.js
           test -s python-lab.js
           test -s python-worker.js
+          test -s repo-tools.js
           test -s manifest.webmanifest
           test -s service-worker.js
       - name: Check JavaScript syntax
@@ -31,4 +32,5 @@ jobs:
           node --check workspace-tools.js
           node --check python-lab.js
           node --check python-worker.js
+          node --check repo-tools.js
           node --check service-worker.js
