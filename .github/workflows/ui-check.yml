@@ -30,6 +30,7 @@ jobs:
           test -s context-engine.test.mjs
           test -s project-tools.js
           test -s project-tools.test.mjs
+          test -s augmentation-integration.test.mjs
           test -s ui-polish.js
           test -s manifest.webmanifest
           test -s service-worker.js
@@ -48,6 +49,7 @@ jobs:
           node --check context-engine.test.mjs
           node --check project-tools.js
           node --check project-tools.test.mjs
+          node --check augmentation-integration.test.mjs
           node --check ui-polish.js
           node --check service-worker.js
       - name: Test prompt budget behavior
@@ -56,3 +58,5 @@ jobs:
         run: node context-engine.test.mjs
       - name: Test Local Project Lens behavior
         run: node project-tools.test.mjs
+      - name: Test augmented prompt integration
+        run: node augmentation-integration.test.mjs
