@@ -1,0 +1,24 @@
+name: UI Check
+
+on:
+  push:
+    branches: [main, ui-v3]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify required assets
+        run: |
+          test -s index.html
+          test -s styles.css
+          test -s app.js
+          test -s manifest.webmanifest
+          test -s service-worker.js
+      - name: Check JavaScript syntax
+        run: node --check app.js
