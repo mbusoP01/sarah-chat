@@ -1,40 +1,19 @@
 # Nexal AI — R0 Cloud AI
 
-A zero-cost-first web chat that routes requests to live AI Horde text workers. It does not require a paid GPU, paid inference account, or an API key for basic use.
+Nexal AI is an online, zero-cost-first chat interface backed by AI Horde volunteer GPU workers and deployed on Vercel.
 
-## Architecture
+Production: https://nexal-ai-eight.vercel.app
 
-Browser → Vercel static UI → Vercel serverless API → AI Horde volunteer GPU network
+Architecture: Browser → Vercel static UI → one Vercel API function → AI Horde.
 
-The app submits generation jobs asynchronously and polls their status, avoiding long-running serverless requests while jobs wait in the Horde queue.
+The browser submits an asynchronous Horde generation, then polls the job until a worker returns the answer. Automatic routing can choose a small pool of suitable live models to reduce queue stalls.
 
-## Core features
+Routing modes: low-refusal, balanced, fastest live with a quality floor, largest available, or manual model selection.
 
-- Live AI Horde model discovery
-- Dynamic model ranking based on workers, ETA, queue, performance and preferred model families
-- Routing modes: low-refusal, balanced, fastest live, largest available
-- Anonymous R0 operation using AI Horde's documented anonymous key
-- Optional personal AI Horde key stored only in the user's browser
-- Conversation context, system instruction and response-length controls
-- No paid fallback that could create surprise billing
-- Mobile-friendly interface
+The core path requires no paid GPU and no paid inference account. Anonymous AI Horde access works without an account; a registered free Horde key is optional and can improve queue priority.
 
-## API routes
+Privacy: AI Horde uses community-operated workers. Do not submit passwords, private client information or other secrets.
 
-- `GET /api/models` — ranked live text models
-- `POST /api/chat` — select model and submit an asynchronous generation
-- `GET /api/job?id=...` — poll generation state/result
-- `DELETE /api/job?id=...` — cancel a queued generation
-- `GET /api/health` — Horde health and best-live-model snapshot
+API: `GET /api?op=health`, `GET /api?op=models`, `POST /api?op=chat`, `GET /api?op=job&id=...`, `DELETE /api?op=job&id=...`.
 
-## Deploy
-
-This project is Vercel-compatible with no build step and no required environment variables.
-
-Optional server environment variable:
-
-- `AI_HORDE_API_KEY` — a registered free Horde key to improve queue priority for all requests. Without it, the app uses AI Horde anonymous access.
-
-## Reality of R0 hosting
-
-The web application itself can remain online on a free hosting tier. AI inference is supplied by AI Horde volunteer workers, so latency, model availability and capacity vary. R0 does not guarantee a dedicated GPU or fixed response time.
+The original Sarah frontend is preserved on branch `legacy-sarah-20260822`.
