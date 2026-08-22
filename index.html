@@ -1,79 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <title>Sarah Private Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f2f2f7; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f2f2f7; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         #header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d1d6; }
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
-        .msg { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; line-height: 1.4; font-size: 16px; }
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; line-height: 1.4; font-size: 16px; overflow-wrap: anywhere; }
         .user { align-self: flex-end; background: #007aff; color: white; border-bottom-right-radius: 5px; }
         .sarah { align-self: flex-start; background: #e9e9eb; color: black; border-bottom-left-radius: 5px; }
+        .error { color: #b42318; }
         #input-area { background: white; padding: 15px; display: flex; border-top: 1px solid #d1d1d6; align-items: center; }
         input { flex: 1; border: 1px solid #d1d1d6; border-radius: 20px; padding: 10px 15px; outline: none; font-size: 16px; }
         .btn { color: #007aff; font-weight: bold; cursor: pointer; border: none; background: none; font-size: 14px; }
+        .btn:disabled { opacity: .45; cursor: default; }
     </style>
 </head>
 <body>
     <div id="header">
         <span style="font-weight: bold;">Sarah</span>
-        <button class="btn" onclick="updateUrl()">Update Link</button>
+        <button class="btn" type="button" onclick="updateUrl()">Update Link</button>
     </div>
     <div id="chat">
         <div class="msg sarah">Ready for you, Sir Mbuso.</div>
     </div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="Message Sarah..." onkeypress="if(event.key === 'Enter') send()">
-        <button class="btn" style="font-size: 18px;" onclick="send()">Send</button>
+        <input type="text" id="user-input" autocomplete="off" maxlength="12000" placeholder="Message Sarah..." onkeypress="if(event.key === 'Enter') send()">
+        <button class="btn" id="send-button" type="button" style="font-size: 18px;" onclick="send()">Send</button>
     </div>
 
     <script>
-        let NGROK_URL = localStorage.getItem('sarah_link') || "";
+        const STORAGE_KEY = 'sarah_link';
+        let NGROK_URL = localStorage.getItem(STORAGE_KEY) || '';
+
+        function normalizeEndpoint(raw) {
+            const candidate = String(raw || '').trim().replace(/\/$/, '');
+            if (!candidate) return '';
+            const parsed = new URL(candidate);
+            if (parsed.protocol !== 'https:') throw new Error('Sarah requires an HTTPS endpoint.');
+            if (parsed.username || parsed.password) throw new Error('Credentials are not allowed inside the endpoint URL.');
+            return parsed.origin + parsed.pathname.replace(/\/$/, '');
+        }
 
         function updateUrl() {
-            const newUrl = prompt("Paste your new Ngrok URL here:", NGROK_URL);
-            if (newUrl) {
-                NGROK_URL = newUrl.replace(/\/$/, ""); 
-                localStorage.setItem('sarah_link', NGROK_URL);
+            const newUrl = prompt('Paste your Sarah HTTPS endpoint here:', NGROK_URL);
+            if (!newUrl) return;
+            try {
+                NGROK_URL = normalizeEndpoint(newUrl);
+                localStorage.setItem(STORAGE_KEY, NGROK_URL);
                 location.reload();
+            } catch (error) {
+                alert(error.message || 'That endpoint is not valid.');
             }
         }
 
+        function appendMessage(role, text, extraClass = '') {
+            const node = document.createElement('div');
+            node.className = `msg ${role}${extraClass ? ` ${extraClass}` : ''}`;
+            node.textContent = String(text ?? '');
+            document.getElementById('chat').appendChild(node);
+            return node;
+        }
+
+        if (NGROK_URL) {
+            try { NGROK_URL = normalizeEndpoint(NGROK_URL); }
+            catch { localStorage.removeItem(STORAGE_KEY); NGROK_URL = ''; }
+        }
         if (!NGROK_URL) updateUrl();
 
         async function send() {
             const input = document.getElementById('user-input');
             const chat = document.getElementById('chat');
-            if (!input.value) return;
+            const button = document.getElementById('send-button');
+            const text = input.value.trim();
+            if (!text || button.disabled) return;
+            if (!NGROK_URL) { updateUrl(); return; }
 
-            const text = input.value;
-            chat.innerHTML += `<div class="msg user">${text}</div>`;
-            
-            const thinkingId = "think-" + Date.now();
-            chat.innerHTML += `<div class="msg sarah" id="${thinkingId}"><i>Sarah is thinking...</i></div>`;
-            
+            appendMessage('user', text);
+            const thinking = appendMessage('sarah', 'Sarah is thinking…');
             input.value = '';
+            button.disabled = true;
             chat.scrollTop = chat.scrollHeight;
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute wait
+            const timeoutId = setTimeout(() => controller.abort(), 120000);
 
             try {
                 const res = await fetch(`${NGROK_URL}/chat`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ prompt: text }),
-                    signal: controller.signal
+                    signal: controller.signal,
+                    credentials: 'omit',
+                    referrerPolicy: 'no-referrer'
                 });
-                
-                clearTimeout(timeoutId);
+                if (!res.ok) throw new Error(`Sarah endpoint returned ${res.status}.`);
                 const data = await res.json();
-                document.getElementById(thinkingId).innerText = data.response;
-            } catch (e) {
-                document.getElementById(thinkingId).innerHTML = `<span style="color:red;">Timeout. She's thinking hard, Sir Mbuso.</span>`;
+                const reply = typeof data?.response === 'string' ? data.response : '';
+                if (!reply) throw new Error('Sarah returned an empty response.');
+                thinking.textContent = reply.slice(0, 100000);
+            } catch (error) {
+                thinking.classList.add('error');
+                thinking.textContent = error?.name === 'AbortError'
+                    ? 'Sarah timed out. Check the endpoint and try again.'
+                    : (error?.message || 'Sarah could not reach her endpoint.');
+            } finally {
+                clearTimeout(timeoutId);
+                button.disabled = false;
+                input.focus();
+                chat.scrollTop = chat.scrollHeight;
             }
-            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 </body>
