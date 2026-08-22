@@ -1,5 +1,5 @@
-const CACHE='nexal-ai-v3-3-shell';
-const SHELL=['/','/index.html','/styles.css','/app.js','/augment.js','/workspace-tools.js','/python-lab.js','/python-worker.js','/repo-tools.js','/manifest.webmanifest'];
+const CACHE='nexal-ai-v3-3-search-shell';
+const SHELL=['/','/index.html','/styles.css','/app.js','/augment.js','/search-tools.js','/workspace-tools.js','/python-lab.js','/python-worker.js','/repo-tools.js','/manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(
   caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())
 ));
