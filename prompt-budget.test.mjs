@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+
+globalThis.window=globalThis;
+globalThis.window.fetch=async()=>({ok:true});
+let code=fs.readFileSync(new URL('./prompt-budget.js',import.meta.url),'utf8').replace(/nxPromptInstall\(\);\s*$/,'');
+code+='\nglobalThis.__budgetTest={nxPromptRebudget,NX_PROMPT_CHAR_LIMIT};';
+(0,eval)(code);
+const t=globalThis.__budgetTest;
+const old='old history '.repeat(1200);
+const project='project source '.repeat(700);
+const memory='memory fact '.repeat(500);
+const prompt=`### System:\nKeep the current request authoritative.\n\n### Context:\nExplicit file context.\n\n${old}\n\n### Local Project Context (browser-selected files):\n${project}\n\n### Persistent Context (browser-local recall):\n${memory}\n\n### User:\nCURRENT_REQUEST_MUST_SURVIVE: inspect auth bug\n\n### Assistant:\n`;
+const out=t.nxPromptRebudget(prompt);
+if(out.length>t.NX_PROMPT_CHAR_LIMIT)throw new Error('budget exceeded');
+if(!out.includes('CURRENT_REQUEST_MUST_SURVIVE'))throw new Error('latest user request lost');
+if(!out.includes('### System:'))throw new Error('system section lost');
+if(!out.includes('### Local Project Context'))throw new Error('project section lost');
+if(!out.includes('### Persistent Context'))throw new Error('memory section lost');
+if(out.length>=prompt.length)throw new Error('oversized prompt was not reduced');
+console.log('Prompt budget smoke test passed');
