@@ -1,4 +1,4 @@
-# Nexal AI v3.3 — R0 Intelligence Workspace
+# Nexal AI v3.4 — R0 Intelligence Workspace
 
 Nexal AI is a free-first browser AI workspace. Production:
 
@@ -10,23 +10,21 @@ The default inference path remains R0: the browser connects directly to AI Horde
 
 `Browser UI → browser-safe ability layer → AI Horde / optional external tools`
 
-Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `add711c0062825a8dad699cdab16d73e354e3b91` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
+Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
 
 ## Product UI
 
 - Multi-conversation sidebar with local search, rename, duplicate and deletion
-- Persistent local chat history
-- Auto-generated conversation titles
+- Persistent local chat history and auto-generated conversation titles
 - Command palette (`Ctrl/Cmd + K`)
-- Markdown-style responses and fenced code blocks
-- Copy, read-aloud and regenerate message actions
-- Responsive mobile/iPad navigation
+- Markdown-style responses, fenced code blocks and message actions
+- Responsive desktop/mobile/iPad navigation
+- Premium responsive Tools dock: Cloud Models, Workspace, Python Lab and Repo Inspector remain one-click on desktop and collapse into one Tools menu on smaller screens
+- Improved keyboard focus states, Escape behavior and mobile sidebar dismissal
 - Live model-routing drawer with worker and ETA data
 - Context drawer for files and webpages
-- Image Studio
-- Abilities/plugin page
-- Workspace statistics, export and import
-- Skill presets: Direct, Researcher, Builder, Business and Writer
+- Image Studio and Abilities/plugin page
+- Workspace statistics, export/import and skill presets
 - Installable PWA shell with network-first update-safe caching
 
 ## Core abilities
@@ -47,24 +45,19 @@ Vercel serves a small static shell. Production UI assets are pinned to immutable
 ## Provider and cost boundaries
 
 ### AI Horde
-
 The default text/image route is community compute and remains R0. Anonymous access works without an account. A registered free Horde key can improve queue priority.
 
 ### Jina
-
 Basic URL reading can work without a key at lower limits. Live Search requires a free Jina key under the current Reader/Search limits. Keys are stored only in browser local storage.
 
 ### Puter cloud models
-
-Puter is optional. Nexal does not hold a developer API key or pay the model bill. Puter can provide a user free allowance; usage beyond the user's allowance is governed by the user's Puter account and Puter's current terms/pricing. This layer is not described as unlimited free inference.
+Puter is optional. Nexal does not hold a developer API key or pay the model bill. Puter can provide a user free allowance; usage beyond that allowance is governed by the user's Puter account and Puter's current terms/pricing. This layer is not described as unlimited free inference.
 
 ### GitHub Repo Inspector
-
-Public repository inspection does not require a stored GitHub token for light use. GitHub's unauthenticated API rate limit applies. The inspector deliberately captures text/metadata only and never evaluates fetched repository code.
+Public repository inspection does not require a stored GitHub token for light use. GitHub's unauthenticated API rate limit applies. The inspector captures text/metadata only and never evaluates fetched repository code.
 
 ### Python Lab
-
-Python executes on the user's device in a browser Worker. It does not use a Nexal server. First launch downloads Pyodide, and imported packages may download additional WebAssembly/package assets. Code can consume local CPU/RAM and is stopped by the UI after 60 seconds.
+Python executes on the user's device in a browser Worker. It does not use a Nexal server. First launch downloads Pyodide; imported packages may download additional assets. Runs can consume local CPU/RAM and the UI stops them after 60 seconds.
 
 ## Routing and reliability
 
@@ -85,7 +78,7 @@ Python executes on the user's device in a browser Worker. It does not use a Nexa
 - Workspace export strips Horde/Jina keys.
 - The app uses a restrictive Content Security Policy and no-referrer policy.
 - Arbitrary third-party plugin JavaScript is intentionally not executed.
-- Cloud-model content goes to Puter only when the user deliberately uses the Cloud Models panel.
+- Cloud-model content goes to Puter only when the user deliberately uses Cloud Models.
 - GitHub Repo Inspector contacts only GitHub's public API and injects bounded text context.
 - AI Horde workers are community operated, so passwords, private client information and other secrets should not be submitted there.
 
@@ -93,17 +86,18 @@ Python executes on the user's device in a browser Worker. It does not use a Nexa
 
 The ability system borrows useful ideas from Open WebUI-style tools/actions without allowing arbitrary plugin execution. Future connectors should use explicit browser-safe HTTP boundaries such as vetted CORS-enabled APIs, OpenAPI services or carefully scoped remote tool protocols rather than executing unknown code in-page.
 
-The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundary, not a working connector yet. It should not be treated as an enabled provider until a safe endpoint allowlist/credential model is implemented.
+The existing **OpenAI-Compatible Endpoint** item is a reserved extension boundary, not a working connector. v3.4 visibly disables and labels it as reserved instead of exposing a misleading active toggle.
 
 ## Quality gates
 
 - v3 product UI was merged through PR #1.
 - Premium v3.2 hardening was merged through PR #4 after the full JavaScript gate passed.
-- GitHub Repo Inspector was merged through PR #5 after its CI gate passed.
-- Current Jina Search compatibility was merged through PR #6 after its CI gate passed.
-- CI verifies required assets and syntax-checks `app.js`, `augment.js`, `search-tools.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js` and `service-worker.js`.
-- Production is an immutable static deployment pinned to commit `add711c0062825a8dad699cdab16d73e354e3b91`.
-- The public production shell, service worker and Python worker have been fetched successfully from the stable alias after deployment.
+- GitHub Repo Inspector was merged through PR #5 after CI passed.
+- Current Jina Search compatibility was merged through PR #6 after CI passed.
+- Responsive premium UI polish was merged through PR #7 after CI passed.
+- CI verifies all required assets and syntax-checks `app.js`, `augment.js`, `search-tools.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js`, `ui-polish.js` and `service-worker.js`.
+- Production is an immutable static deployment pinned to commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c`.
+- The public production shell, service worker and Python worker were fetched successfully after deployment.
 - The old Nexal server-side inference relay remains removed.
 
 ## Source layout
@@ -117,6 +111,7 @@ The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundar
 - `python-lab.js` — Python Lab UI and run controls
 - `python-worker.js` — isolated Pyodide worker runtime
 - `repo-tools.js` — public GitHub repository inspection and bounded context injection
+- `ui-polish.js` — responsive tools dock, focus/sidebar polish and reserved-feature labeling
 - `manifest.webmanifest` — installable-app metadata
 - `service-worker.js` — update-safe offline shell fallback
 - `.github/workflows/ui-check.yml` — automated asset/syntax verification
@@ -124,4 +119,4 @@ The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundar
 ## Rollback
 
 - `legacy-sarah-20260822` preserves the original Sarah frontend.
-- Git history preserves the earlier Nexal AI R0, v3 and v3.2 states.
+- Git history preserves earlier Nexal AI R0, v3, v3.2 and v3.3 states.
