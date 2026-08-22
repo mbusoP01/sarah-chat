@@ -1,19 +1,48 @@
 # Nexal AI — R0 Cloud AI
 
-Nexal AI is an online, zero-cost-first chat interface backed by AI Horde volunteer GPU workers and deployed on Vercel.
+Nexal AI is a static online chat interface that connects the user's browser directly to AI Horde's volunteer GPU network. No paid GPU, paid inference API, or Nexal server-side inference relay is required.
 
 Production: https://nexal-ai-eight.vercel.app
 
-Architecture: Browser → Vercel static UI → one Vercel API function → AI Horde.
+## Final architecture
 
-The browser submits an asynchronous Horde generation, then polls the job until a worker returns the answer. Automatic routing can choose a small pool of suitable live models to reduce queue stalls.
+Browser → AI Horde REST API → live community text worker
 
-Routing modes: low-refusal, balanced, fastest live with a quality floor, largest available, or manual model selection.
+Vercel only serves the static HTML/JavaScript page. Prompts, optional Horde API keys, generation requests and polling go directly from the browser to AI Horde. AI Horde currently permits browser CORS access for the required methods and headers.
 
-The core path requires no paid GPU and no paid inference account. Anonymous AI Horde access works without an account; a registered free Horde key is optional and can improve queue priority.
+## Routing
 
-Privacy: AI Horde uses community-operated workers. Do not submit passwords, private client information or other secrets.
+- Low-refusal: prioritizes live Cydonia, Skyfall, Heretic/abliterated, Magnum and related models.
+- Balanced: routes among the highest-scoring capable live models.
+- Fastest capable: optimizes ETA while applying a quality floor so tiny models do not win only because their queue is empty.
+- Largest available: prioritizes larger capable models.
+- Manual model selection is also available.
 
-API: `GET /api?op=health`, `GET /api?op=models`, `POST /api?op=chat`, `GET /api?op=job&id=...`, `DELETE /api?op=job&id=...`.
+Automatic modes provide a small model pool so AI Horde can use another suitable live worker when one disappears or becomes busy.
 
-The original Sarah frontend is preserved on branch `legacy-sarah-20260822`.
+## Reliability and response quality
+
+- Asynchronous generation with browser polling.
+- Stop sequences prevent the model from continuing into fake user/system turns.
+- Direct-answer system instruction reduces reasoning-style rambling.
+- Chat history and settings persist locally in the browser.
+- Generation requests can be cancelled when starting a new chat.
+
+## Cost
+
+The core path is R0/$0. Anonymous AI Horde access works with its documented anonymous key. A registered free Horde key is optional and can improve queue priority.
+
+## Privacy
+
+AI Horde uses community-operated workers. Do not submit passwords, private client information or other secrets. The page warns about this explicitly.
+
+## Verification
+
+- AI Horde CORS was verified to allow `*` origins, the `apikey` and `Client-Agent` headers, and POST/GET/OPTIONS/PUT/DELETE/PATCH methods.
+- Live model discovery and real text generation were tested successfully.
+- A Cydonia 24B prompt-quality test returned exactly `NEXAL_DIRECT_OK` with the final stop/direct-answer settings.
+- The production static JavaScript passed a syntax check before deployment.
+
+## Rollback
+
+The pre-Nexal original Sarah frontend is preserved on branch `legacy-sarah-20260822`.
