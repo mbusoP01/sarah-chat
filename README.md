@@ -1,16 +1,24 @@
-# Nexal AI v3.4 — R0 Intelligence Workspace
+# Nexal AI v3.5 — R0 Intelligence Workspace
 
-Nexal AI is a free-first browser AI workspace. Production:
+Nexal AI is a free-first browser AI workspace built around low-refusal community inference, local tools, grounded research and user-controlled context.
 
-**https://nexal-ai-eight.vercel.app**
+**Current production:** https://nexal-ai-eight.vercel.app
 
 The default inference path remains R0: the browser connects directly to AI Horde community compute. There is no paid GPU requirement and no Nexal inference proxy.
 
-## Production architecture
+## Source vs production status
+
+The maintained Nexal source lives on `migration/nexal-ai-extract-20260822`. Nexal AI v3.5 source is merged there at commit `d8be30579e0e2f7243efc031c6f9c8a6c0faede1`.
+
+The current Vercel production wrapper is still the previously deployed v3.4 direct deployment and serves UI assets pinned to immutable Git commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c`. v3.5 must not be described as live until that production wrapper is explicitly promoted to the new source pin and re-verified.
+
+Sarah remains separate on `main`; Nexal work must not overwrite Sarah again.
+
+## Architecture
 
 `Browser UI → browser-safe ability layer → AI Horde / optional external tools`
 
-Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
+Vercel serves the owner-gated shell. Most intelligence and tooling runs in the browser. Conversations, workspace data, Context Vault items and optional provider keys are stored locally unless the user deliberately sends a request to an external inference or research provider.
 
 ## Product UI
 
@@ -19,10 +27,10 @@ Vercel serves a small static shell. Production UI assets are pinned to immutable
 - Command palette (`Ctrl/Cmd + K`)
 - Markdown-style responses, fenced code blocks and message actions
 - Responsive desktop/mobile/iPad navigation
-- Premium responsive Tools dock: Cloud Models, Workspace, Python Lab and Repo Inspector remain one-click on desktop and collapse into one Tools menu on smaller screens
-- Improved keyboard focus states, Escape behavior and mobile sidebar dismissal
+- Responsive Tools dock for Cloud Models, Workspace, Python Lab and Repo Inspector
 - Live model-routing drawer with worker and ETA data
 - Context drawer for files and webpages
+- Context Engine with recall preview and pinned Context Vault
 - Image Studio and Abilities/plugin page
 - Workspace statistics, export/import and skill presets
 - Installable PWA shell with network-first update-safe caching
@@ -30,17 +38,34 @@ Vercel serves a small static shell. Production UI assets are pinned to immutable
 ## Core abilities
 
 1. **AI Horde Chat** — dynamic low-refusal, balanced, fastest-capable and largest-model routing.
-2. **Live Web Search** — Jina Search uses the current documented `s.jina.ai/?q=` endpoint and places bounded, timestamped live results into the composer for grounded answers. A free Jina key is required for Search.
-3. **Web Reader** — webpages and public PDFs can be added to context through Jina Reader; basic Reader usage can work without a key at lower limits.
-4. **File Context** — local TXT, Markdown, JSON, CSV and source-code files are read in the browser.
-5. **Calculator** — arithmetic runs locally without using an LLM.
-6. **Image Studio** — image generation through live AI Horde image workers.
-7. **Image Vision** — uploaded images can be captioned through AI Horde interrogation workers.
-8. **Voice** — browser speech recognition and speech synthesis where supported.
-9. **Cloud Models** — optional Puter.js access to supported GPT, Claude and Gemini-class models without a Nexal developer API key. AI Horde remains the default engine.
-10. **Workspace Tools** — local import/export, conversation management, statistics and skill presets.
-11. **Python Lab** — Python 3 execution through Pyodide 0.29.4 in a dedicated browser Web Worker. Compatible packages can load from imports and results can be placed back into chat context.
-12. **GitHub Repo Inspector** — reads a public repository's live metadata, README and prioritized file tree through GitHub's public API, then places bounded structured repository context into chat. Repository code is never executed by this tool.
+2. **Context Engine** — browser-local cross-conversation retrieval selects relevant prior chat fragments and pinned notes, preserves provenance labels and injects a bounded context pack into text-generation requests.
+3. **Context Vault** — pin useful decisions, facts, instructions or snippets from chat; preview what would be recalled; configure recall size; import/export the local vault.
+4. **Live Web Search** — Jina Search uses `s.jina.ai/?q=` and places bounded live results into the composer for grounded answers. A free Jina key is required for Search.
+5. **Web Reader** — webpages and public PDFs can be added to context through Jina Reader; basic Reader usage can work without a key at lower limits.
+6. **File Context** — local TXT, Markdown, JSON, CSV and source-code files are read in the browser.
+7. **Calculator** — arithmetic runs locally without using an LLM.
+8. **Image Studio** — image generation through live AI Horde image workers.
+9. **Image Vision** — uploaded images can be captioned through AI Horde interrogation workers.
+10. **Voice** — browser speech recognition and speech synthesis where supported.
+11. **Cloud Models** — optional Puter.js access to supported GPT, Claude and Gemini-class models without a Nexal developer API key. AI Horde remains the default engine.
+12. **Workspace Tools** — local import/export, conversation management, statistics and skill presets.
+13. **Python Lab** — Python 3 execution through Pyodide 0.29.4 in a dedicated browser Web Worker. Compatible packages can load from imports and results can be placed back into chat context.
+14. **GitHub Repo Inspector** — reads a public repository's live metadata, README and prioritized file tree through GitHub's public API, then places bounded structured repository context into chat. Repository code is never executed by this tool.
+
+## Context Engine v3.5
+
+The v3.5 milestone targets context blindness without adding a Nexal memory server.
+
+- Relevant past messages are scored locally using query overlap, recency and bounded relevance heuristics.
+- The active conversation is excluded from cross-chat recall by default because its recent messages are already present in the normal prompt history.
+- Recalled items include source labels such as conversation title and whether the text came from a past user, past assistant or pinned note.
+- Recall is capped by both item count and character budget.
+- A Context button exposes automatic-recall controls, a live recall preview and the Context Vault.
+- Individual chat messages can be pinned into the vault.
+- AI Horde text prompts are augmented at the browser request boundary.
+- Optional Puter cloud-model prompts receive the same local recall layer.
+- Likely passwords, passcodes, OTPs, API keys, bearer tokens, recovery phrases and similar secrets are excluded from automatic history recall.
+- The Context Engine adds no new network provider and no paid dependency.
 
 ## Provider and cost boundaries
 
@@ -72,21 +97,22 @@ Python executes on the user's device in a browser Worker. It does not use a Nexa
 
 ## Privacy and security
 
-- Conversations, workspace data, plugin settings and optional keys stay in browser storage.
+- Conversations, Context Vault data, workspace data, plugin settings and optional keys stay in browser storage.
 - No Nexal inference server receives prompts or Horde keys.
 - Local text files are read client-side before being added to prompt context.
-- Workspace export strips Horde/Jina keys.
+- Workspace export strips Horde/Jina keys; the Context Vault has its own local import/export controls.
 - The app uses a restrictive Content Security Policy and no-referrer policy.
 - Arbitrary third-party plugin JavaScript is intentionally not executed.
 - Cloud-model content goes to Puter only when the user deliberately uses Cloud Models.
 - GitHub Repo Inspector contacts only GitHub's public API and injects bounded text context.
+- Automatic Context Engine recall filters messages that look like credentials or recovery secrets.
 - AI Horde workers are community operated, so passwords, private client information and other secrets should not be submitted there.
 
 ## Extension philosophy
 
 The ability system borrows useful ideas from Open WebUI-style tools/actions without allowing arbitrary plugin execution. Future connectors should use explicit browser-safe HTTP boundaries such as vetted CORS-enabled APIs, OpenAPI services or carefully scoped remote tool protocols rather than executing unknown code in-page.
 
-The existing **OpenAI-Compatible Endpoint** item is a reserved extension boundary, not a working connector. v3.4 visibly disables and labels it as reserved instead of exposing a misleading active toggle.
+The existing **OpenAI-Compatible Endpoint** item remains a reserved extension boundary, not a working connector. It stays visibly disabled rather than exposing a misleading active toggle.
 
 ## Quality gates
 
@@ -95,9 +121,10 @@ The existing **OpenAI-Compatible Endpoint** item is a reserved extension boundar
 - GitHub Repo Inspector was merged through PR #5 after CI passed.
 - Current Jina Search compatibility was merged through PR #6 after CI passed.
 - Responsive premium UI polish was merged through PR #7 after CI passed.
-- CI verifies all required assets and syntax-checks `app.js`, `augment.js`, `search-tools.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js`, `ui-polish.js` and `service-worker.js`.
-- Production is an immutable static deployment pinned to commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c`.
-- The public production shell, service worker and Python worker were fetched successfully after deployment.
+- Context Engine v3.5 was merged through PR #14 after UI Check run #39 passed.
+- CI verifies all required assets and syntax-checks `app.js`, `augment.js`, `search-tools.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js`, `context-engine.js`, `context-engine.test.mjs`, `ui-polish.js` and `service-worker.js`.
+- `context-engine.test.mjs` verifies relevant cross-chat recall, provenance injection and credential-like secret filtering.
+- Current production remains the immutable v3.4 deployment pinned to commit `5c749f01a629b913fc7ee5772707c1f6dbd6441c` until a separate promotion is completed.
 - The old Nexal server-side inference relay remains removed.
 
 ## Source layout
@@ -111,12 +138,16 @@ The existing **OpenAI-Compatible Endpoint** item is a reserved extension boundar
 - `python-lab.js` — Python Lab UI and run controls
 - `python-worker.js` — isolated Pyodide worker runtime
 - `repo-tools.js` — public GitHub repository inspection and bounded context injection
+- `context-engine.js` — persistent browser-local recall, Context Vault and prompt augmentation
+- `context-engine.test.mjs` — v3.5 recall/privacy smoke test
 - `ui-polish.js` — responsive tools dock, focus/sidebar polish and reserved-feature labeling
 - `manifest.webmanifest` — installable-app metadata
 - `service-worker.js` — update-safe offline shell fallback
-- `.github/workflows/ui-check.yml` — automated asset/syntax verification
+- `.github/workflows/ui-check.yml` — automated asset, syntax and Context Engine behavior verification
 
-## Rollback
+## Rollback and separation
 
 - `legacy-sarah-20260822` preserves the original Sarah frontend.
-- Git history preserves earlier Nexal AI R0, v3, v3.2 and v3.3 states.
+- `main` is Sarah-only and must remain separate from Nexal AI.
+- `migration/nexal-ai-extract-20260822` is the maintained Nexal source branch.
+- Git history preserves earlier Nexal AI R0, v3, v3.2, v3.3 and v3.4 states.
