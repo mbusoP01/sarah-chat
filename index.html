@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Nexal AI" />
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://aihorde.net https://stablehorde.net https://r.jina.ai https://s.jina.ai https://models.aihorde.net; img-src 'self' data: blob: https:; media-src 'self' blob:; font-src 'self' data:; base-uri 'self'; form-action 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://js.puter.com; style-src 'self' 'unsafe-inline'; connect-src https://aihorde.net https://stablehorde.net https://r.jina.ai https://s.jina.ai https://models.aihorde.net https://api.puter.com https://*.puter.com; img-src 'self' data: blob: https:; media-src 'self' blob:; font-src 'self' data:; base-uri 'self'; form-action 'none'" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet" href="/styles.css" />
   <title>Nexal AI</title>
@@ -18,5 +18,6 @@
   <input id="filePicker" type="file" multiple hidden accept=".txt,.md,.json,.csv,.js,.ts,.tsx,.jsx,.py,.html,.css,.xml,.yaml,.yml,image/*" />
   <input id="imagePicker" type="file" hidden accept="image/*" />
   <script type="module" src="/app.js"></script>
+  <script type="module" src="/augment.js"></script>
 </body>
 </html>
