@@ -2,7 +2,7 @@ name: UI Check
 
 on:
   push:
-    branches: [main, ui-v3, abilities-v3-1, premium-v3-2, abilities-v3-3, fix-jina-search-v3-3, ui-polish-v3-4]
+    branches: [main, ui-v3, abilities-v3-1, premium-v3-2, abilities-v3-3, fix-jina-search-v3-3, ui-polish-v3-4, migration/nexal-ai-extract-20260822, work/nexal-ai-v3.5-context-engine-20260822]
   pull_request:
 
 jobs:
@@ -24,6 +24,8 @@ jobs:
           test -s python-lab.js
           test -s python-worker.js
           test -s repo-tools.js
+          test -s context-engine.js
+          test -s context-engine.test.mjs
           test -s ui-polish.js
           test -s manifest.webmanifest
           test -s service-worker.js
@@ -36,5 +38,9 @@ jobs:
           node --check python-lab.js
           node --check python-worker.js
           node --check repo-tools.js
+          node --check context-engine.js
+          node --check context-engine.test.mjs
           node --check ui-polish.js
           node --check service-worker.js
+      - name: Test Context Engine behavior
+        run: node context-engine.test.mjs
