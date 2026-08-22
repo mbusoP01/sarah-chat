@@ -1,4 +1,4 @@
-# Nexal AI v3.2 — R0 Intelligence Workspace
+# Nexal AI v3.3 — R0 Intelligence Workspace
 
 Nexal AI is a free-first browser AI workspace. Production:
 
@@ -10,7 +10,7 @@ The default inference path remains R0: the browser connects directly to AI Horde
 
 `Browser UI → browser-safe ability layer → AI Horde / optional external tools`
 
-Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `5bef2bcdb782d434e58f84c6ffc1e64287cb92eb` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
+Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `fe9dd8e859949829807b7eab7fd4e2099bd80539` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
 
 ## Product UI
 
@@ -41,7 +41,8 @@ Vercel serves a small static shell. Production UI assets are pinned to immutable
 8. **Voice** — browser speech recognition and speech synthesis where supported.
 9. **Cloud Models** — optional Puter.js access to supported GPT, Claude and Gemini-class models without a Nexal developer API key. AI Horde remains the default engine.
 10. **Workspace Tools** — local import/export, conversation management, statistics and skill presets.
-11. **Python Lab** — Python 3 execution through Pyodide 0.29.4 in a dedicated browser Web Worker, including compatible packages loaded from imports. Results can be sent back into chat as verified computation context.
+11. **Python Lab** — Python 3 execution through Pyodide 0.29.4 in a dedicated browser Web Worker. Compatible packages can load from imports and results can be placed back into chat context.
+12. **GitHub Repo Inspector** — reads a public repository's live metadata, README and prioritized file tree through GitHub's public API, then places bounded structured repository context into chat. Repository code is never executed by this tool.
 
 ## Provider and cost boundaries
 
@@ -56,6 +57,10 @@ URL reading can work without a key at lower limits. Live Search may require a fr
 ### Puter cloud models
 
 Puter is optional. Nexal does not hold a developer API key or pay the model bill. Puter can provide a user free allowance; usage beyond the user's allowance is governed by the user's Puter account and Puter's current terms/pricing. This layer is not described as unlimited free inference.
+
+### GitHub Repo Inspector
+
+Public repository inspection does not require a stored GitHub token for light use. GitHub's unauthenticated API rate limit applies. The inspector deliberately captures text/metadata only and never evaluates fetched repository code.
 
 ### Python Lab
 
@@ -81,18 +86,22 @@ Python executes on the user's device in a browser Worker. It does not use a Nexa
 - The app uses a restrictive Content Security Policy and no-referrer policy.
 - Arbitrary third-party plugin JavaScript is intentionally not executed.
 - Cloud-model content goes to Puter only when the user deliberately uses the Cloud Models panel.
+- GitHub Repo Inspector contacts only GitHub's public API and injects bounded text context.
 - AI Horde workers are community operated, so passwords, private client information and other secrets should not be submitted there.
 
 ## Extension philosophy
 
-The ability system borrows useful ideas from Open WebUI-style tools/actions without allowing arbitrary plugin execution. Future connectors should use explicit browser-safe HTTP boundaries such as CORS-enabled OpenAI-compatible APIs, vetted OpenAPI services or carefully scoped remote tool protocols rather than executing unknown code in-page.
+The ability system borrows useful ideas from Open WebUI-style tools/actions without allowing arbitrary plugin execution. Future connectors should use explicit browser-safe HTTP boundaries such as vetted CORS-enabled APIs, OpenAPI services or carefully scoped remote tool protocols rather than executing unknown code in-page.
+
+The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundary, not a working connector yet. It should not be treated as an enabled provider until a safe endpoint allowlist/credential model is implemented.
 
 ## Quality gates
 
 - v3 product UI was merged through PR #1.
-- Premium v3.2 hardening was merged through PR #4 after the CI gate passed.
-- CI verifies required assets and syntax-checks `app.js`, `augment.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js` and `service-worker.js`.
-- Production is an immutable static deployment pinned to commit `5bef2bcdb782d434e58f84c6ffc1e64287cb92eb`.
+- Premium v3.2 hardening was merged through PR #4 after the full JavaScript gate passed.
+- GitHub Repo Inspector was merged through PR #5 after its CI gate passed.
+- CI verifies required assets and syntax-checks `app.js`, `augment.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js` and `service-worker.js`.
+- Production is an immutable static deployment pinned to commit `fe9dd8e859949829807b7eab7fd4e2099bd80539`.
 - The public production shell, service worker and Python worker have been fetched successfully from the stable alias after deployment.
 - The old Nexal server-side inference relay remains removed.
 
@@ -105,6 +114,7 @@ The ability system borrows useful ideas from Open WebUI-style tools/actions with
 - `workspace-tools.js` — workspace import/export, conversation tools and skill presets
 - `python-lab.js` — Python Lab UI and run controls
 - `python-worker.js` — isolated Pyodide worker runtime
+- `repo-tools.js` — public GitHub repository inspection and bounded context injection
 - `manifest.webmanifest` — installable-app metadata
 - `service-worker.js` — update-safe offline shell fallback
 - `.github/workflows/ui-check.yml` — automated asset/syntax verification
@@ -112,4 +122,4 @@ The ability system borrows useful ideas from Open WebUI-style tools/actions with
 ## Rollback
 
 - `legacy-sarah-20260822` preserves the original Sarah frontend.
-- Git history preserves the earlier Nexal AI R0 and v3 states.
+- Git history preserves the earlier Nexal AI R0, v3 and v3.2 states.
