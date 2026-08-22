@@ -24,6 +24,8 @@ jobs:
           test -s python-lab.js
           test -s python-worker.js
           test -s repo-tools.js
+          test -s prompt-budget.js
+          test -s prompt-budget.test.mjs
           test -s context-engine.js
           test -s context-engine.test.mjs
           test -s project-tools.js
@@ -40,12 +42,16 @@ jobs:
           node --check python-lab.js
           node --check python-worker.js
           node --check repo-tools.js
+          node --check prompt-budget.js
+          node --check prompt-budget.test.mjs
           node --check context-engine.js
           node --check context-engine.test.mjs
           node --check project-tools.js
           node --check project-tools.test.mjs
           node --check ui-polish.js
           node --check service-worker.js
+      - name: Test prompt budget behavior
+        run: node prompt-budget.test.mjs
       - name: Test Context Engine behavior
         run: node context-engine.test.mjs
       - name: Test Local Project Lens behavior
