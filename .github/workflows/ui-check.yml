@@ -19,9 +19,11 @@ jobs:
           test -s styles.css
           test -s app.js
           test -s augment.js
+          test -s workspace-tools.js
           test -s manifest.webmanifest
           test -s service-worker.js
       - name: Check JavaScript syntax
         run: |
           node --check app.js
           node --check augment.js
+          node --check workspace-tools.js
