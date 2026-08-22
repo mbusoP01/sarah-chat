@@ -10,7 +10,7 @@ The default inference path remains R0: the browser connects directly to AI Horde
 
 `Browser UI → browser-safe ability layer → AI Horde / optional external tools`
 
-Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `fe9dd8e859949829807b7eab7fd4e2099bd80539` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
+Vercel serves a small static shell. Production UI assets are pinned to immutable Git commit `add711c0062825a8dad699cdab16d73e354e3b91` through jsDelivr. The Python worker, manifest and service worker are served from the Nexal Vercel origin.
 
 ## Product UI
 
@@ -32,8 +32,8 @@ Vercel serves a small static shell. Production UI assets are pinned to immutable
 ## Core abilities
 
 1. **AI Horde Chat** — dynamic low-refusal, balanced, fastest-capable and largest-model routing.
-2. **Live Web Search** — Jina Search can place current search results into the composer for grounded answers. A free Jina key may be required for Search.
-3. **Web Reader** — webpages and public PDFs can be added to context through Jina Reader.
+2. **Live Web Search** — Jina Search uses the current documented `s.jina.ai/?q=` endpoint and places bounded, timestamped live results into the composer for grounded answers. A free Jina key is required for Search.
+3. **Web Reader** — webpages and public PDFs can be added to context through Jina Reader; basic Reader usage can work without a key at lower limits.
 4. **File Context** — local TXT, Markdown, JSON, CSV and source-code files are read in the browser.
 5. **Calculator** — arithmetic runs locally without using an LLM.
 6. **Image Studio** — image generation through live AI Horde image workers.
@@ -52,7 +52,7 @@ The default text/image route is community compute and remains R0. Anonymous acce
 
 ### Jina
 
-URL reading can work without a key at lower limits. Live Search may require a free Jina key. Keys are stored only in browser local storage.
+Basic URL reading can work without a key at lower limits. Live Search requires a free Jina key under the current Reader/Search limits. Keys are stored only in browser local storage.
 
 ### Puter cloud models
 
@@ -100,8 +100,9 @@ The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundar
 - v3 product UI was merged through PR #1.
 - Premium v3.2 hardening was merged through PR #4 after the full JavaScript gate passed.
 - GitHub Repo Inspector was merged through PR #5 after its CI gate passed.
-- CI verifies required assets and syntax-checks `app.js`, `augment.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js` and `service-worker.js`.
-- Production is an immutable static deployment pinned to commit `fe9dd8e859949829807b7eab7fd4e2099bd80539`.
+- Current Jina Search compatibility was merged through PR #6 after its CI gate passed.
+- CI verifies required assets and syntax-checks `app.js`, `augment.js`, `search-tools.js`, `workspace-tools.js`, `python-lab.js`, `python-worker.js`, `repo-tools.js` and `service-worker.js`.
+- Production is an immutable static deployment pinned to commit `add711c0062825a8dad699cdab16d73e354e3b91`.
 - The public production shell, service worker and Python worker have been fetched successfully from the stable alias after deployment.
 - The old Nexal server-side inference relay remains removed.
 
@@ -110,7 +111,8 @@ The existing **OpenAI-Compatible Endpoint** card is a reserved extension boundar
 - `index.html` — secure app shell
 - `styles.css` — UI design system
 - `app.js` — chat, conversations, Horde routing, local tools, images and voice
-- `augment.js` — live search and optional Puter cloud-model layer
+- `augment.js` — optional Puter cloud-model layer and legacy augmentation hooks
+- `search-tools.js` — current Jina live-search behavior and grounded composer injection
 - `workspace-tools.js` — workspace import/export, conversation tools and skill presets
 - `python-lab.js` — Python Lab UI and run controls
 - `python-worker.js` — isolated Pyodide worker runtime
