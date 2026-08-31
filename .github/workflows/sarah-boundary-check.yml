@@ -1,0 +1,32 @@
+name: Sarah Boundary Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify Sarah-only frontend boundary
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const assert = require('assert/strict');
+          const html = fs.readFileSync('index.html', 'utf8');
+          assert.match(html, /Sarah Private Access/);
+          assert.match(html, /sarah_link/);
+          assert.match(html, /textContent/);
+          assert.match(html, /protocol !== 'https:'/);
+          assert.doesNotMatch(html, /Nexal AI|AI Horde|Cydonia|Skyfall|Horde|Trevor/i);
+          assert.doesNotMatch(html, /innerHTML/);
+          console.log('Sarah identity/security boundary passed');
+          NODE
